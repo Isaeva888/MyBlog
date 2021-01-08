@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+							<!-- Content -->
+								<section>
+									<header class="main">
+										<h1>Welcome to Beauty Blog</h1>
+									</header>
+											{% if messages %}
+									<ul class="messages">
+											{% for message in messages %}
+											<div class="alert alert-success" role="alert">{{ message }}</div>
+											{% endfor %}
+									</ul>
+									{% endif %}
+									<span class="image main"><img src="{% static 'images/BeautyBlog.jpg' %}"  style = "width:auto; height:auto" alt="" /></span>
+
+									<p style="color:maroon;"> You are in the world of beauty advices where people share their experience.</p>
+
+									<hr class="major" />
+
+									<h2 style="color:red;">Beauty begins from you!</h2>
+									<p style="color:black;">“Beauty begins the moment you decide to be YOURSELF”
+										― Coco Channel</p>
+									<div class="posts">
+										{% for post in page_obj %}
+										<article>
+											<a href="#" class="image"><img src="{{ post.get_image }}" style="width:200px; height:200px;" alt="" /></a>
+											<h3>{{ post }}</h3>
+											<p>{{ post.description|truncatewords:10}}</p>
+											<ul class="actions">
+												<li><a href="{% url 'detail' post.id %}" class="button">More</a></li>
+											</ul>
+										</article>
+										{% endfor %}
+									</div>
+								</section>
+<nav aria-label="...">
+	  <ul class="pagination pagination-sm">
+		  {% if page_obj.has_previous %}
+		  <li class="page-item"><a class="page-link" href="{% url 'home' %}?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a></li>
+		{% endif %}
+		<li class="page-item active" aria-current="page">
+		  <span class="page-link">{{ page_obj.number }}</span>
+		</li>
+			{% if page_obj.has_next %}
+		<li class="page-item"><a class="page-link" href="{% url 'home' %}?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a></li>
+		{% endif %}
+	  </ul>
+	</nav>
+
+{% endblock %}

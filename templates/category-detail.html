@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+							<!-- Banner -->
+								<section id="banner">
+									<div class="content">
+										<header>
+											<h1>{{ category.name }}</h1>
+<!--											<p>A free and fully responsive site template</p>-->
+										</header>
+										<p>GOOD SKIN CARE is important for the following reasons: It helps your skin stay in good condition: You’re shedding skin cells throughout the day, so it’s important to keep your skin glowing and in good condition. An effective routine can help prevent acne, treat wrinkles, and help keep your skin looking its best. Your skin will look more youthful: As you age, your skin’s cells turn over more slowly, make it look duller and less radiant. Using a quality skin care line can help remove dead skin cells so your body will replace them with newer, more youthful cells. Prevention is easier than correction: Preventing skin problems is easier -– and less costly – than trying to fix them in the future.  Your self-confidence will get a boost: When your skin looks better, you’ll feel better about yourself and have more self-confidence.</p>
+										{% if category.get_children %}
+										{% for child in category.get_children %}
+										<a href="{% url 'category' child.slug %}"><li>{{ child.name }}</li></a>
+										{% endfor %}
+										{% endif %}
+									</div>
+									<span class="image object">
+										<img src="{{ category.image.url }}" style="width:500px; height:500px;" alt="" />
+									</span>
+								</section>
+
+							<!-- Section -->
+						{% if not category.get_children %}
+								<section>
+									<header class="major">
+										<h2 style="color:black">Products&Description</h2>
+									</header>
+									<div class="posts">
+										{% for post in posts %}
+										<article>
+											<a href="#" class="image"><img src="{{ post.get_image }}" style="width:200px; height:200px;" alt="" /></a>
+											<h3>{{ post }}</h3>
+											<p>{{ post.description|truncatewords:10}}</p>
+											<ul class="actions">
+												<li><a href="{% url 'detail' post.id %}" class="button">More</a></li>
+											</ul>
+										</article>
+										{% endfor %}
+									</div>
+								</section>
+						{% endif %}
+
+
+
+{% endblock %}
