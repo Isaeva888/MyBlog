@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, DeleteView
 
-from main.forms import PostForm, ImageForm
+from main.forms import PostForm, ImageForm, CommentForm
 from main.models import *
 from main.permissions import UserHasPermissionMixin
 
@@ -67,23 +67,38 @@ class CategoryDetailView(DetailView):
         context['posts'] = Post.objects.filter(category_id=self.slug)
         return context
 
-# def post_detail(request, pk):
-#     post = get_object_or_404(Post, pk=pk)
-#     image = post.get_image
-#     images = post.images.exclude(id=image.id)
-#     return render(request, 'post-detail.html', locals())
-
-class PostDetailView(DetailView):
-    model = Post
+def post_detail(request, pk):
     template_name = 'post-detail.html'
-    context_object_name = 'post'
+    post = get_object_or_404(Post, pk=pk)
+    image = post.get_image
+    images = post.images.exclude(id=image.id)
+    comments = post.comments.filter(active=True)
+    new_comment = None
+    # Comment posted
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            # Create Comment object but don't save to database yet
+            new_comment = comment_form.save(commit=False)
+            # Assign the current post to the comment
+            new_comment.post = post
+            # Save the comment to the database
+            new_comment.save()
+        else:
+            comment_form = CommentForm()
+    return render(request, template_name, locals())
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        image = self.get_object().get_image
-        if isinstance(image, type(Image)):
-            context['images'] = self.get_object().images.exclude(id=image.id)
-        return context
+# class PostDetailView(DetailView):
+#     model = Post
+#     template_name = 'post-detail.html'
+#     context_object_name = 'post'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         image = self.get_object().get_image
+#         if isinstance(image, type(Image)):
+#             context['images'] = self.get_object().images.exclude(id=image.id)
+#         return context
 
 
 
@@ -109,24 +124,25 @@ def add_post(request):
     return render(request, 'add-post.html', locals())
 
 
-def update_post(request,pk):
-    post = get_object_or_404(Post,pk=pk)
+def update_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
     if request.user == post.user:
         ImageFormSet = modelformset_factory(Image,form=ImageForm, max_num=1)
-        post_form= PostFormForm(request.POST or None, instance=post)
+        post_form = PostForm(request.POST or None, instance=post)
         formset = ImageFormSet(request.POST or None, request.FILES or None, queryset=Image.objects.filter(post=post))
         if post_form.is_valid() and formset.is_valid():
-           post = post_form.save()
+            post = post_form.save()
 
-        for form in formset:
-            image = form.save(commit=False)
-            image.post = post
-            image.save()
-        return redirect(post.get_absolute_url())
-        return render(request, 'update-post.html', locals())
+            for form in formset:
+                image = form.save(commit=False)
+                image.post = post
+                image.save()
+                return redirect(post.get_absolute_url())
+        else:
+            return render(request, 'update-post.html', locals())
     else:
-        return HttpResponse('<h1>403 Forbidden<h/1>')
-
+        # return HttpResponse('<h1>403 Forbidden<h/1>')
+        return render(request, 'update-post.html', locals())
 
 # def delete_post(request,pk):
 #     post = get_object_or_404(Post, pk=pk)
